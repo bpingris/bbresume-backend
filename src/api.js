@@ -1,8 +1,11 @@
 const express = require("express")
 const serverless = require("serverless-http")
 const puppeteer = require('puppeteer')
+const cors = require('cors')
+
 
 const app = express()
+app.use(cors())
 
 const router = express.Router()
 
