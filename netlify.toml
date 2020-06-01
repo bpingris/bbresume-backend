@@ -1,2 +1,10 @@
 [build]
   functions = "functions"
+
+[[redirects]]
+  from = "/api/create"
+  to = "/.netlify/functions/api"
+  status = 200
+
+  [redirects.headers]
+     Access-Control-Allow-Origin = "*"
