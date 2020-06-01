@@ -1,14 +1,14 @@
-// const express = requ/ire("express")
+const express = requ/ire("express")
 // const serverless = require("serverless-http")
 const puppeteer = require('puppeteer')
 // const cors = require('cors')
 
 
-// const app = express()
+const app = express()
 // app.use(cors())
 // app.use(express.json())
 
-// const router = express.Router()
+const router = express.Router()
 
 // router.use(cors())
 // router.get('', (req, res) => {
@@ -45,20 +45,21 @@ async function tailwind() {
 }
 
 
-// router.post('', async (req, res) => {
+router.post('', async (req, res) => {
 //   if (!req.body.content || req.body.content.length === 0) {
 //     return res.send("Missing content")
 //   }
 //   const pdf = await generate(req.body.content, req.body.css)
 //   res.contentType("application/pdf")
-//   res.send(pdf)
-// })
+  res.send(pdf)
+})
 
 // app.use("/.netlify/functions/api", router)
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type"
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS, PATH"
 };
 
 module.exports.handler = async (event, context) => {
@@ -69,5 +70,5 @@ module.exports.handler = async (event, context) => {
   if (!body.content || body.content.length === 0) {
     return { statusCode: 422, body: "Missig content", headers }
   }
-  return { statusCode: 200, body: "NICE", headers }
+  return { statusCode: 200, body: "NICE", headers: {...headers, "content-type": "application/pdf"} }
 }
