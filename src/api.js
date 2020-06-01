@@ -61,13 +61,13 @@ const headers = {
   "Access-Control-Allow-Headers": "Content-Type"
 };
 
-module.exports.handler = (event, context, callback) => {
+module.exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
-    return callback(null, {statusCode: 405, body: "Method not allowed", headers })
+    return { statusCode: 405, body: "Method not allowed", headers }
   }
   const body = JSON.parse(event.body)
   if (!body.content || body.content.length === 0) {
-    return callback(null,{ statusCode: 422, body: "Missig content", headers })
+    return { statusCode: 422, body: "Missig content", headers }
   }
-  return callback(null,{ statusCode: 200, body: "NICE", headers })
+  return { statusCode: 200, body: "NICE", headers }
 }
