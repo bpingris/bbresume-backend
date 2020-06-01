@@ -1,19 +1,19 @@
-const express = requ/ire("express")
-// const serverless = require("serverless-http")
-const puppeteer = require('puppeteer')
-// const cors = require('cors')
-
+const chromium = require('chrome-aws-lambda')
+const express = require("express")
+const serverless = require("serverless-http")
+const cors = require('cors')
+const fetch = require('node-fetch')
+const {tailwind} = require('./tailwind.js')
 
 const app = express()
-// app.use(cors())
-// app.use(express.json())
+app.use(cors())
+app.use(express.json())
 
 const router = express.Router()
 
-// router.use(cors())
-// router.get('', (req, res) => {
-//   res.json({ ok: "ok" })
-// })
+router.get('', (req, res) => {
+  res.json({ ok: "ok" })
+})
 
 async function generate(data, css) {
   data = `
@@ -21,7 +21,7 @@ async function generate(data, css) {
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500&display=swap" rel="stylesheet">
         <style>
-          ${tailwind()}
+          ${tailwind}
           ${css}
         </style>
       </head>
@@ -30,45 +30,28 @@ async function generate(data, css) {
       </body>
     </html>
   `
-  const b = await puppeteer.launch({ args: ['--no-sandbox'] })
-  const p = await b.newPage()
-  await p.setContent(data)
-  const pdf = await p.pdf({ printBackground: true, format: 'A4' })
-  await b.close()
-  return pdf
+  let b = null
+  try {
+    const b = await chromium.puppeteer.launch({ args: chromium.args, executablePath: await chromium.executablePath, headless:chromium.headless  })
+    const p = await b.newPage()
+    await p.setContent(data)
+    const pdf = await p.pdf({ printBackground: true, format: 'A4' })
+    await b.close()
+    return pdf
+  } catch (error) {
+    console.log(error)
+  }
 }
-
-async function tailwind() {
-  return await (
-    await fetch("https://unpkg.com/tailwindcss@1.4.6/dist/tailwind.min.css      ")
-  ).text();
-}
-
 
 router.post('', async (req, res) => {
-//   if (!req.body.content || req.body.content.length === 0) {
-//     return res.send("Missing content")
-//   }
-//   const pdf = await generate(req.body.content, req.body.css)
-//   res.contentType("application/pdf")
+  if (!req.body.content || req.body.content.length === 0) {
+    return res.send("Missing content")
+  }
+  const pdf = await generate(req.body.content, req.body.css)
+  res.contentType("application/pdf")
   res.send(pdf)
 })
 
-// app.use("/.netlify/functions/api", router)
+app.use("/.netlify/functions/api", router)
 
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS, PATH"
-};
-
-module.exports.handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: "Method not allowed", headers }
-  }
-  const body = JSON.parse(event.body)
-  if (!body.content || body.content.length === 0) {
-    return { statusCode: 422, body: "Missig content", headers }
-  }
-  return { statusCode: 200, body: "NICE", headers: {...headers, "content-type": "application/pdf"} }
-}
+module.exports.handler = serverless(app)
