@@ -1,15 +1,17 @@
-const chromium = require('chrome-aws-lambda')
+const puppeteer = require('puppeteer')
 const express = require("express")
-const serverless = require("serverless-http")
 const cors = require('cors')
 const fetch = require('node-fetch')
-const {tailwind} = require('./tailwind.js')
+const morgan = require('morgan')
 
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(morgan('common'))
 
 const router = express.Router()
+
+let tailwind = null
 
 router.get('', (req, res) => {
   res.json({ ok: "ok" })
@@ -21,7 +23,7 @@ async function generate(data, css) {
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500&display=swap" rel="stylesheet">
         <style>
-          ${tailwind}
+          ${await tailwind()}
           ${css}
         </style>
       </head>
@@ -32,7 +34,7 @@ async function generate(data, css) {
   `
   let b = null
   try {
-    const b = await chromium.puppeteer.launch({ args: chromium.args, executablePath: await chromium.executablePath, headless:chromium.headless  })
+    const b = await puppeteer.launch({ args: ["--no-sandbox"] })
     const p = await b.newPage()
     await p.setContent(data)
     const pdf = await p.pdf({ printBackground: true, format: 'A4' })
@@ -40,18 +42,29 @@ async function generate(data, css) {
     return pdf
   } catch (error) {
     console.log(error)
+    return null
   }
+}
+
+async function tailwind() {
+  if (!tailwind) {
+    tailwind = await (await fetch('https://unpkg.com/tailwindcss@1.4.6/dist/tailwind.min.css')).text()
+  }
+  return tailwind;
 }
 
 router.post('', async (req, res) => {
   if (!req.body.content || req.body.content.length === 0) {
-    return res.send("Missing content")
+    return res.status(422).send("Missing content")
   }
   const pdf = await generate(req.body.content, req.body.css)
-  res.contentType("application/pdf")
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Length': pdf.length
+  })
   res.send(pdf)
 })
 
-app.use("/.netlify/functions/api", router)
+app.use('/', router)
 
-module.exports.handler = serverless(app)
+app.listen(3000, () => console.log(':3000'))
