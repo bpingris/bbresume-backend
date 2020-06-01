@@ -1,19 +1,19 @@
-const express = require("express")
-const serverless = require("serverless-http")
+// const express = requ/ire("express")
+// const serverless = require("serverless-http")
 const puppeteer = require('puppeteer')
-const cors = require('cors')
+// const cors = require('cors')
 
 
-const app = express()
+// const app = express()
 // app.use(cors())
-app.use(express.json())
+// app.use(express.json())
 
-const router = express.Router()
+// const router = express.Router()
 
-router.use(cors())
-router.get('', (req, res) => {
-  res.json({ ok: "ok" })
-})
+// router.use(cors())
+// router.get('', (req, res) => {
+//   res.json({ ok: "ok" })
+// })
 
 async function generate(data, css) {
   data = `
@@ -45,24 +45,29 @@ async function tailwind() {
 }
 
 
-router.post('', async (req, res) => {
-  if (!req.body.content || req.body.content.length === 0) {
-    return res.send("Missing content")
-  }
-  const pdf = await generate(req.body.content, req.body.css)
-  res.contentType("application/pdf")
-  res.send(pdf)
-})
+// router.post('', async (req, res) => {
+//   if (!req.body.content || req.body.content.length === 0) {
+//     return res.send("Missing content")
+//   }
+//   const pdf = await generate(req.body.content, req.body.css)
+//   res.contentType("application/pdf")
+//   res.send(pdf)
+// })
 
-app.use("/.netlify/functions/api", router)
+// app.use("/.netlify/functions/api", router)
 
-module.exports.handler = (event, context) => {
+const headers = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
+
+module.exports.handler = (event, context, callback) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: "Method not allowed"}
+    return callback(null, {statusCode: 405, body: "Method not allowed", headers })
   }
   const body = JSON.parse(event.body)
   if (!body.content || body.content.length === 0) {
-    return { statusCode: 422, body: "Missig content"}
+    return callback(null,{ statusCode: 422, body: "Missig content", headers })
   }
-  return {statusCode: 200, body: "NICE"}
+  return callback(null,{ statusCode: 200, body: "NICE", headers })
 }
