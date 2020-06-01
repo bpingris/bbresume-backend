@@ -1,7 +1,7 @@
 const express = require("express")
 const serverless = require("serverless-http")
 const puppeteer = require('puppeteer')
-// const cors = require('cors')
+const cors = require('cors')
 
 
 const app = express()
@@ -10,6 +10,7 @@ app.use(express.json())
 
 const router = express.Router()
 
+router.use(cors())
 router.get('', (req, res) => {
   res.json({ ok: "ok" })
 })
@@ -43,9 +44,6 @@ async function tailwind() {
   ).text();
 }
 
-router.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*")
-})
 
 router.post('', async (req, res) => {
   if (!req.body.content || req.body.content.length === 0) {
