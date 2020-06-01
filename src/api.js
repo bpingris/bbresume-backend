@@ -56,4 +56,13 @@ router.post('', async (req, res) => {
 
 app.use("/.netlify/functions/api", router)
 
-module.exports.handler = serverless(app)
+module.exports.handler = (event, context) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: "Method not allowed"}
+  }
+  const body = JSON.parse(event.body)
+  if (!body.content || body.content.length === 0) {
+    return { statusCode: 422, body: "Missig content"}
+  }
+  return {statusCode: 200, body: "NICE"}
+}
