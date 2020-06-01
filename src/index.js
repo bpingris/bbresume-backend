@@ -11,7 +11,7 @@ app.use(morgan('common'))
 
 const router = express.Router()
 
-let tailwind = null
+let _tailwind = null
 
 router.get('', (req, res) => {
   res.json({ ok: "ok" })
@@ -47,10 +47,10 @@ async function generate(data, css) {
 }
 
 async function tailwind() {
-  if (!tailwind) {
-    tailwind = await (await fetch('https://unpkg.com/tailwindcss@1.4.6/dist/tailwind.min.css')).text()
+  if (!_tailwind) {
+    _tailwind = await (await fetch('https://unpkg.com/tailwindcss@1.4.6/dist/tailwind.min.css')).text()
   }
-  return tailwind;
+  return _tailwind;
 }
 
 router.post('', async (req, res) => {
