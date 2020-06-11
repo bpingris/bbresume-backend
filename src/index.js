@@ -3,10 +3,12 @@ const express = require("express")
 const cors = require('cors')
 const fetch = require('node-fetch')
 const morgan = require('morgan')
+const fs = require('fs')
 
 const app = express()
 app.use(cors())
 app.use(express.json({limit: '50mb'}))
+app.use(morgan('common'))
 
 const router = express.Router()
 
@@ -17,25 +19,24 @@ router.get('', (req, res) => {
 })
 
 async function generate(data, css) {
-  data = `
-    <html>
+  data = `<html>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500&display=swap" rel="stylesheet">
+        <link href="https://unpkg.com/tailwindcss@1.4.6/dist/tailwind.min.css" rel="stylesheet">
         <style>
-          ${await tailwind()}
           ${css}
         </style>
       </head>
       <body>
         ${data}
       </body>
-    </html>
-  `
-  let b = null
+    </html>`
   try {
     const b = await puppeteer.launch({ args: ["--no-sandbox"] })
     const p = await b.newPage()
-    await p.setContent(data)
+    
+    await p.setContent(data, { waitUntil: 'networkidle2' })
     const pdf = await p.pdf({ printBackground: true, format: 'A4' })
     await b.close()
     return pdf
